@@ -1,0 +1,37 @@
+---
+- name: Monitor Azure File Share Usage
+  hosts: localhost
+  vars:
+    storage_account: "your-storage-account"
+    share_name: "your-file-share"
+    threshold: 80  # percentage usage threshold
+  tasks:
+    - name: Get File Share Usage (in GB)
+      command: >
+        az storage share show --name {{ share_name }} --account-name {{ storage_account }} --query "properties.quota" --output tsv
+      register: share_quota
+
+    - name: Get File Share Used Bytes
+      command: >
+        az storage share list --account-name {{ storage_account }} --query "[?name=='{{ share_name }}'].properties.usage" --output tsv
+      register: share_usage
+
+    - name: Calculate usage percentage
+      set_fact:
+        usage_percentage: "{{ (share_usage.stdout | int / share_quota.stdout | int) * 100 }}"
+
+    - name: Check if usage exceeds threshold
+      set_fact:
+        exceed_threshold: "{{ usage_percentage > threshold }}"
+
+    - name: Send alert if threshold is exceeded
+      mail:
+        host: smtp.example.com
+        port: 25
+        subject: "Azure File Share Usage Alert"
+        to: "admin@example.com"
+        from: "monitoring@example.com"
+        body: >
+          Azure File Share {{ share_name }} in storage account {{ storage_account }} has exceeded the threshold.
+          Current usage: {{ usage_percentage | round(2) }}%
+      when: exceed_threshold
