@@ -2,7 +2,7 @@
 - name: Monitor Azure File Share Usage
   hosts: all
   vars:
-    storage_account: "your-storage-account"
+    storage_account: "xxx-storage-account"
     share_name: "your-file-share"
     threshold: 80  # percentage usage threshold
   tasks:
