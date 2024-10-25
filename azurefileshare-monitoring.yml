@@ -1,6 +1,6 @@
 ---
 - name: Monitor Azure File Share Usage
-  hosts: localhost
+  hosts: all
   vars:
     storage_account: "your-storage-account"
     share_name: "your-file-share"
