@@ -27,7 +27,7 @@
     - name: Send alert if threshold is exceeded
       mail:
         host: smtp.example.com
-        port: 25
+        port: 587
         subject: "Azure File Share Usage Alert"
         to: "admin@example.com"
         from: "monitoring@example.com"
