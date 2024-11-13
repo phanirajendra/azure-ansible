@@ -1,0 +1,39 @@
+---
+- name: Ensure required collections are installed
+  hosts: VGMSDTESTAPP,VGMSDTESTAPP01
+  tasks:
+    - name: Start IIS service
+      ansible.windows.win_service:
+        name: W3SVC
+        start_mode: auto
+        state: started
+      register: iis_start
+
+    - name: Gather IIS service status
+      ansible.windows.win_shell: Get-Service -Name 'W3SVC' | Select-Object Status
+      register: iis_status
+
+    - name: Parse IIS status
+      set_fact:
+        iis_state: "{{ iis_status.stdout_lines[3] }}"
+
+    - name: Send email with IIS status
+      community.general.mail:
+        host: smtp.valgenesis.in
+        port: 587
+        username: "{{ smtp_username }}"
+        password: "{{ smtp_password }}"
+        from: "ansible@valgenesis.in"
+        to: "phani.vella@valgenesis.com"
+        subject: IIS Service has been started on {{ inventory_hostname }}
+        body: |
+          Dear Team,
+
+          The IIS service on {{ inventory_hostname }} has been {{ iis_state }}.
+          - Service Name: W3SVC
+          - Status: {{ iis_state }}
+
+          Regards,
+
+          Ansible Automation
+      delegate_to: localhost
